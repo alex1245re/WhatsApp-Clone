@@ -1,10 +1,8 @@
 <script setup>
 import { ref } from 'vue'
-import { io } from 'socket.io-client'
+import socket from './socket.js'
 import LoginView from './components/LoginView.vue'
 import ChatView from './components/ChatView.vue'
-
-const socket = io()
 const currentUser = ref(null)
 
 function handleLogin(user) {
