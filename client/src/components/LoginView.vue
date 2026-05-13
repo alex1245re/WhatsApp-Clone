@@ -43,7 +43,6 @@ function handleSubmit() {
 
 <template>
   <div id="login-container">
-    <!-- Paso 1: Iniciar sesión con Google -->
     <div v-if="!firebaseUser" id="login-form">
       <h2>WhatsApp Clone</h2>
       <p class="login-subtitle">Inicia sesión para continuar</p>
@@ -54,7 +53,6 @@ function handleSubmit() {
       <p v-if="error" class="error-msg">{{ error }}</p>
     </div>
 
-    <!-- Paso 2: Completar perfil del chat -->
     <form v-else id="login-form" @submit.prevent="handleSubmit">
       <div class="user-preview">
         <img :src="firebaseUser.photoURL" :alt="firebaseUser.displayName" class="google-avatar" />

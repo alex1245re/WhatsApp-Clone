@@ -4,6 +4,7 @@
   "description": "whatsap clone",
   "scripts": {
     "start": "node server.js",
+    "dev": "concurrently \"nodemon server.js\" \"cd client && npm run dev\"",
     "dev:server": "nodemon server.js",
     "dev:client": "cd client && npm run dev",
     "build": "cd client && npm run build"
@@ -16,6 +17,7 @@
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "nodemon": "^3.1.14"
   }
 }
