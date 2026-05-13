@@ -4,7 +4,7 @@ import { io } from 'socket.io-client'
 import LoginView from './components/LoginView.vue'
 import ChatView from './components/ChatView.vue'
 
-const socket = io({ transports: ['polling'] })
+const socket = io(import.meta.env.VITE_SOCKET_URL ?? '', { transports: ['polling'] })
 const currentUser = ref(null)
 
 function handleLogin(user) {
