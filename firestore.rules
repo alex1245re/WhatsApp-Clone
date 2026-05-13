@@ -1,0 +1,9 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Solo el servidor (Admin SDK) escribe. Los clientes no acceden directamente.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -54,6 +54,11 @@ function sendMessage() {
 onMounted(() => {
     props.socket.emit('join', props.currentUser)
 
+    props.socket.on('cargar mensajes', (msgs) => {
+        messages.value = msgs
+        scrollToBottom()
+    })
+
     props.socket.on('actualizar usuarios', (data) => {
         usuarios.value = data
     })
@@ -74,6 +79,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+    props.socket.off('cargar mensajes')
     props.socket.off('actualizar usuarios')
     props.socket.off('usuario escribiendo')
     props.socket.off('chat message')

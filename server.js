@@ -2,33 +2,53 @@ const express = require('express');
 const { Server } = require('socket.io');
 const { createServer } = require('node:http');
 const cors = require('cors');
-const path = require('node:path');
+const { db } = require('./server/firebaseAdmin');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors());
-app.use(express.static(path.join(__dirname, 'client/dist')));
+// En producción acepta peticiones desde el dominio de Firebase Hosting
+const allowedOrigins = process.env.CLIENT_ORIGIN
+    ? [process.env.CLIENT_ORIGIN]
+    : ['http://localhost:5173', 'http://localhost:4173'];
+
+app.use(cors({ origin: allowedOrigins, methods: ['GET', 'POST'] }));
 
 const server = createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
+        origin: allowedOrigins,
+        methods: ['GET', 'POST']
     }
 });
+
+// Helper Firestore: añade doc sin bloquear ni romper si no está disponible
+const fsAdd = (ref, data) => db ? ref.add(data).catch(e => console.error('[Firestore]', e.message)) : null;
 
 var usuariosConectados = [];
 
 io.on('connection', (socket) => {
-    socket.on('join', (user) => {
+    socket.on('join', async (user) => {
         socket.user = user;
         socket.user.id = socket.id;
 
         usuariosConectados.push(socket.user);
-
         io.emit('actualizar usuarios', usuariosConectados);
-        
+
+        // Cargar últimos 50 mensajes de Firestore para el nuevo usuario
+        if (db) {
+            try {
+                const snap = await db.collection('messages')
+                    .orderBy('timestamp', 'asc')
+                    .limitToLast(50)
+                    .get();
+                const msgs = snap.docs.map(d => d.data());
+                socket.emit('cargar mensajes', msgs);
+            } catch (e) {
+                console.error('[Firestore]', e.message);
+            }
+        }
+
         io.emit('chat message', {
             system: true,
             text: `${user.name} se ha unido al chat`
@@ -37,10 +57,9 @@ io.on('connection', (socket) => {
 
     socket.on('chat message', (msg) => {
         if (socket.user) {
-            io.emit('chat message', {
-                user: socket.user,
-                text: msg
-            });
+            const message = { user: socket.user, text: msg };
+            io.emit('chat message', message);
+            fsAdd(db?.collection('messages'), { ...message, timestamp: new Date() });
         }
     });
 
@@ -57,7 +76,6 @@ io.on('connection', (socket) => {
         if (socket.user) {
             usuariosConectados = usuariosConectados.filter(user => user.id !== socket.user.id);
             io.emit('actualizar usuarios', usuariosConectados);
-
             io.emit('chat message', {
                 system: true,
                 text: `${socket.user.name} ha salido del chat.`
