@@ -1,7 +1,15 @@
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { signOut } from 'firebase/auth'
+import { auth } from '../firebase.js'
 
 const props = defineProps(['socket', 'currentUser'])
+const emit = defineEmits(['logout'])
+
+async function handleSignOut() {
+    await signOut(auth)
+    emit('logout')
+}
 
 const messages = ref([])
 const usuarios = ref([])
@@ -73,7 +81,10 @@ onUnmounted(() => {
 <template>
     <div id="app-container">
         <div id="sidebar">
-        <h3>Usuarios Conectados</h3>
+        <div class="sidebar-header">
+            <h3>Usuarios Conectados</h3>
+            <button @click="handleSignOut" class="signout-btn">Salir ↩</button>
+        </div>
         <ul id="listausuarios">
             <li v-for="usuario in usuarios" :key="usuario.id">
                 <span class="user-list-avatar">{{ usuario.avatar }}</span>

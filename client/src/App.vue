@@ -4,16 +4,20 @@ import { io } from 'socket.io-client'
 import LoginView from './components/LoginView.vue'
 import ChatView from './components/ChatView.vue'
 
-const socket = io(import.meta.env.VITE_SOCKET_URL ?? '', { transports: ['polling'] })
+const socket = io()
 const currentUser = ref(null)
 
 function handleLogin(user) {
     currentUser.value = user
     socket.emit('join', user)
 }
+
+function handleLogout() {
+    currentUser.value = null
+}
 </script>
 
 <template>
     <LoginView v-if="!currentUser" @login="handleLogin" />
-    <ChatView v-else :socket="socket" :current-user="currentUser" />
+    <ChatView v-else :socket="socket" :current-user="currentUser" @logout="handleLogout" />
 </template>
