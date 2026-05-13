@@ -7,6 +7,7 @@ const props = defineProps(['socket', 'currentUser'])
 const emit = defineEmits(['logout'])
 
 async function handleSignOut() {
+    props.socket.emit('leave')
     await signOut(auth)
     emit('logout')
 }

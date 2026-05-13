@@ -59,6 +59,18 @@ io.on('connection', (socket) => {
         });
     });
 
+    socket.on('leave', () => {
+        if (socket.user) {
+            usuariosConectados = usuariosConectados.filter(u => u.id !== socket.user.id);
+            io.emit('actualizar usuarios', usuariosConectados);
+            io.emit('chat message', {
+                system: true,
+                text: `${socket.user.name} ha salido del chat.`
+            });
+            socket.user = null;
+        }
+    });
+
     socket.on('chat message', (msg) => {
         if (socket.user) {
             const message = { user: socket.user, text: msg };
