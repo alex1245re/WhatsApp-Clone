@@ -72,7 +72,7 @@ function getEmailError(code) {
     'auth/wrong-password': 'Contraseña incorrecta.',
     'auth/invalid-credential': 'Correo o contraseña incorrectos.',
   }
-  return msgs[code] || 'Error de autenticación. Inténtalo de nuevo.'
+  return msgs[code] || `Error de autenticación (${code}). Inténtalo de nuevo.`
 }
 
 async function signOutFromSetup() {
@@ -124,7 +124,7 @@ function handleSubmit() {
         <input v-if="emailMode === 'register'" v-model="nameInput" type="text" placeholder="Tu nombre" required />
         <input v-model="emailInput" type="email" placeholder="Correo electrónico" required />
         <input v-model="passwordInput" type="password" placeholder="Contraseña" required minlength="6" />
-        <button type="submit" :disabled="loading" class="google-btn">
+        <button type="submit" :disabled="loading" class="submit-btn">
           <span v-if="loading">Cargando...</span>
           <span v-else>{{ emailMode === 'register' ? 'Crear cuenta' : 'Entrar' }}</span>
         </button>
@@ -147,7 +147,7 @@ function handleSubmit() {
           <input type="radio" name="avatar" :value="a" v-model="avatar" /> {{ a }}
         </label>
       </div>
-      <button type="submit">Entrar al Chat</button>
+      <button type="submit" class="submit-btn">Entrar al Chat</button>
     </form>
   </div>
 </template>
