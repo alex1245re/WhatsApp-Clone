@@ -34,8 +34,8 @@ io.on('connection', (socket) => {
         socket.user = user;
         socket.user.id = socket.id;
 
-        // Eliminar entrada previa del mismo usuario (reconexión o múltiples pestañas)
-        usuariosConectados = usuariosConectados.filter(u => u.uid !== user.uid);
+        // Eliminar entrada previa del mismo usuario (reconexión) O del mismo socket (re-login en misma pestaña)
+        usuariosConectados = usuariosConectados.filter(u => u.uid !== user.uid && u.id !== socket.id);
         usuariosConectados.push(socket.user);
         io.emit('actualizar usuarios', usuariosConectados);
 
