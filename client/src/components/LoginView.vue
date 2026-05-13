@@ -11,7 +11,6 @@ import { auth, googleProvider } from '../firebase.js'
 
 const emit = defineEmits(['login'])
 
-// 'auth' → pantalla de login  |  'profile' → elegir estado y avatar
 const step = ref('auth')
 const firebaseUser = ref(null)
 
@@ -19,15 +18,14 @@ const status = ref('')
 const avatar = ref('👨‍💻')
 const avatars = ['👨‍💻', '👩‍💻', '🤖', '👻', '🦊']
 
-const authMethod = ref('google')  // 'google' | 'email'
-const emailMode  = ref('login')   // 'login'  | 'register'
+const authMethod = ref('google')
+const emailMode  = ref('login')   
 const emailInput    = ref('')
 const passwordInput = ref('')
 const nameInput     = ref('')
 const loading = ref(false)
 const error   = ref('')
 
-// ── Google ────────────────────────────────────────────────────────────────
 async function signInWithGoogle() {
   loading.value = true
   error.value   = ''
@@ -44,7 +42,6 @@ async function signInWithGoogle() {
   }
 }
 
-// ── Email / Contraseña ────────────────────────────────────────────────────
 async function handleEmailAuth() {
   loading.value = true
   error.value   = ''
@@ -80,7 +77,6 @@ function getEmailError(code) {
   return msgs[code] || `Error (${code}). Inténtalo de nuevo.`
 }
 
-// ── Cambiar cuenta ────────────────────────────────────────────────────────
 async function changeAccount() {
   await signOut(auth)
   firebaseUser.value  = null
@@ -91,7 +87,6 @@ async function changeAccount() {
   error.value         = ''
 }
 
-// ── Entrar al chat ────────────────────────────────────────────────────────
 function handleSubmit() {
   emit('login', {
     name:   firebaseUser.value.displayName || firebaseUser.value.email,
@@ -104,13 +99,9 @@ function handleSubmit() {
 
 <template>
   <div id="login-container">
-
-    <!-- ── PASO 1: Autenticación ── -->
     <div v-if="step === 'auth'" id="login-form">
       <h2>WhatsApp Clone</h2>
       <p class="login-subtitle">Inicia sesión para continuar</p>
-
-      <!-- Tabs Google / Email -->
       <div class="auth-tabs">
         <button
           type="button"
@@ -123,8 +114,7 @@ function handleSubmit() {
           @click="authMethod = 'email'; error = ''"
         >Email</button>
       </div>
-
-      <!-- Google -->
+      
       <template v-if="authMethod === 'google'">
         <button @click="signInWithGoogle" :disabled="loading" class="google-btn">
           <span v-if="loading">Cargando...</span>
