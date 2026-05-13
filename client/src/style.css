@@ -355,6 +355,23 @@ body {
     font-size: 1.5rem;
 }
 
+/* Botón para cambiar de cuenta en el paso de perfil */
+.change-account-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.change-account-btn:hover {
+    background: #e0e0e0;
+    color: #333;
+}
+
 #escribiendo {
     padding: 5px 15px;
     font-size: 0.85rem;

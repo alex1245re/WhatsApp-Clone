@@ -1,12 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import {
-  signInWithPopup,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  updateProfile,
-  onAuthStateChanged
-} from 'firebase/auth'
+import {signInWithPopup,signInWithEmailAndPassword,createUserWithEmailAndPassword,updateProfile,signOut,onAuthStateChanged} from 'firebase/auth'
 import { auth, googleProvider } from '../firebase.js'
 
 const emit = defineEmits(['login'])
@@ -18,8 +12,8 @@ const avatars = ['👨‍💻', '👩‍💻', '🤖', '👻', '🦊']
 const loading = ref(false)
 const error = ref('')
 
-const authMethod = ref('google')  // 'google' | 'email'
-const emailMode = ref('login')    // 'login' | 'register'
+const authMethod = ref('google') 
+const emailMode = ref('login')
 const emailInput = ref('')
 const passwordInput = ref('')
 const nameInput = ref('')
@@ -81,6 +75,11 @@ function getEmailError(code) {
   return msgs[code] || 'Error de autenticación. Inténtalo de nuevo.'
 }
 
+async function signOutFromSetup() {
+  await signOut(auth)
+  firebaseUser.value = null
+}
+
 function handleSubmit() {
   emit('login', {
     name: firebaseUser.value.displayName || firebaseUser.value.email,
@@ -93,7 +92,6 @@ function handleSubmit() {
 
 <template>
   <div id="login-container">
-    <!-- Paso 1: Autenticación -->
     <div v-if="!firebaseUser" id="login-form">
       <h2>WhatsApp Clone</h2>
       <p class="login-subtitle">Inicia sesión para continuar</p>
@@ -107,7 +105,6 @@ function handleSubmit() {
         </button>
       </div>
 
-      <!-- Google -->
       <div v-if="authMethod === 'google'">
         <button @click="signInWithGoogle" :disabled="loading" class="google-btn">
           <span v-if="loading">Cargando...</span>
@@ -115,7 +112,6 @@ function handleSubmit() {
         </button>
       </div>
 
-      <!-- Email / Contraseña -->
       <form v-else @submit.prevent="handleEmailAuth">
         <div class="email-mode-toggle">
           <button type="button" :class="{ active: emailMode === 'login' }" @click="emailMode = 'login'">
@@ -137,12 +133,12 @@ function handleSubmit() {
       <p v-if="error" class="error-msg">{{ error }}</p>
     </div>
 
-    <!-- Paso 2: Perfil (estado + avatar) -->
     <form v-else id="login-form" @submit.prevent="handleSubmit">
       <div class="user-preview">
         <img v-if="firebaseUser.photoURL" :src="firebaseUser.photoURL" :alt="firebaseUser.displayName" class="google-avatar" />
         <div v-else class="avatar-placeholder">{{ avatar }}</div>
         <strong>{{ firebaseUser.displayName || firebaseUser.email }}</strong>
+        <button type="button" class="change-account-btn" @click="signOutFromSetup">↩ Cambiar</button>
       </div>
       <input v-model="status" type="text" placeholder="Tu estado (ej: Disponible)" required />
       <p>Elige tu avatar:</p>
