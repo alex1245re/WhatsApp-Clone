@@ -7,20 +7,19 @@ import LoginView from './components/LoginView.vue'
 import ChatView from './components/ChatView.vue'
 
 const currentUser  = ref(null)
-const initializing = ref(true)   // true mientras Firebase comprueba la sesión
+const initializing = ref(true)
 
 let unsubscribeAuth = null
 
 onMounted(() => {
     unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
         if (firebaseUser) {
-            // Intentar restaurar el perfil guardado (status, avatar, etc.)
             const saved = localStorage.getItem(`wac_profile_${firebaseUser.uid}`)
             if (saved) {
                 try { currentUser.value = JSON.parse(saved) }
                 catch { currentUser.value = null }
             } else {
-                currentUser.value = null   // sesión Firebase pero sin perfil → mostrar login
+                currentUser.value = null
             }
         } else {
             currentUser.value = null

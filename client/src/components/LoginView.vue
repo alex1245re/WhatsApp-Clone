@@ -114,7 +114,7 @@ function handleSubmit() {
           @click="authMethod = 'email'; error = ''"
         >Email</button>
       </div>
-      
+
       <template v-if="authMethod === 'google'">
         <button @click="signInWithGoogle" :disabled="loading" class="google-btn">
           <span v-if="loading">Cargando...</span>
@@ -122,7 +122,6 @@ function handleSubmit() {
         </button>
       </template>
 
-      <!-- Email / Contraseña -->
       <template v-else>
         <div class="email-mode-toggle">
           <button type="button" :class="{ active: emailMode === 'login' }"    @click="emailMode = 'login';    error = ''">Iniciar sesión</button>
@@ -142,7 +141,6 @@ function handleSubmit() {
       <p v-if="error" class="error-msg">{{ error }}</p>
     </div>
 
-    <!-- ── PASO 2: Perfil (estado + avatar) ── -->
     <form v-else id="login-form" @submit.prevent="handleSubmit">
       <div class="user-preview">
         <img v-if="firebaseUser?.photoURL" :src="firebaseUser.photoURL" :alt="firebaseUser.displayName" class="google-avatar" />
