@@ -191,11 +191,13 @@ function handleSubmit() {
           <button type="button" class="avatar-upload-btn" @click="triggerFileInput">📷 Subir foto</button>
           <button v-if="isImageAvatar" type="button" class="avatar-clear-btn" @click="avatar = '👨‍💻'">✕ Quitar</button>
         </div>
-        <p>O elige un emoji:</p>
-        <div class="avatars">
-          <label v-for="a in avatars" :key="a">
-            <input type="radio" name="avatar" :value="a" v-model="avatar" /> {{ a }}
-          </label>
+        <div v-if="!isImageAvatar">
+          <p>O elige un emoji:</p>
+          <div class="avatars">
+            <label v-for="a in avatars" :key="a">
+              <input type="radio" name="avatar" :value="a" v-model="avatar" /> {{ a }}
+            </label>
+          </div>
         </div>
       </div>
       <button type="submit" class="submit-btn">Entrar al Chat</button>
