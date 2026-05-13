@@ -26,7 +26,7 @@ Aplicación de chat en tiempo real inspirada en WhatsApp, con autenticación Fir
 - Indicador de "está escribiendo..."
 - Lista de usuarios conectados en el sidebar
 - Avatar personalizado: foto propia, foto de Google o emoji
-- Redimensionado automático de fotos a 80×80 JPEG (Canvas API)
+- Redimensionado automático de fotos a 80×80 JPEG (Canvas)
 - Historial de los últimos 50 mensajes cargado al entrar
 - Mensajes de sistema al unirse/salir
 - Perfil guardado en `localStorage` (nombre, estado, avatar)

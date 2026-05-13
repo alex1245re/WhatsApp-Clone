@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth, GoogleAuthProvider } from 'firebase/auth'
 
-const firebaseConfig = {
+const configuracionFirebase = {
     apiKey: 'AIzaSyBoshUYnXUquyfJZf9QYSBt9tzcPYmAXoY',
     authDomain: 'whatsapp-clone-91fcb.firebaseapp.com',
     projectId: 'whatsapp-clone-91fcb',
@@ -10,7 +10,7 @@ const firebaseConfig = {
     appId: '1:290539573480:web:eea8271909b0b9dc42795d'
 }
 
-const app = initializeApp(firebaseConfig)
+const appFirebase = initializeApp(configuracionFirebase)
 
-export const auth = getAuth(app)
+export const auth = getAuth(appFirebase)
 export const googleProvider = new GoogleAuthProvider()

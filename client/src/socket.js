@@ -1,7 +1,7 @@
 import { io } from 'socket.io-client'
 
-const url = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000'
+const urlServidor = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000'
 
-export default io(url.startsWith('http') ? url : `https://${url}`, {
+export default io(urlServidor.startsWith('http') ? urlServidor : `https://${urlServidor}`, {
   transports: ['websocket', 'polling']
 })

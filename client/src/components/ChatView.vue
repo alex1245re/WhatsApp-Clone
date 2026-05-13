@@ -6,53 +6,53 @@ import { auth } from '../firebase.js'
 const props = defineProps(['socket', 'currentUser'])
 const emit = defineEmits(['logout'])
 
-async function handleSignOut() {
+async function cerrarSesion() {
     props.socket.emit('leave')
     await signOut(auth)
     emit('logout')
 }
 
-const messages = ref([])
+const mensajes = ref([])
 const usuarios = ref([])
-const inputText = ref('')
-const escribiendoText = ref('')
+const textoInput = ref('')
+const textoEscribiendo = ref('')
 
 const usuariosEscribiendo = new Set()
-let escribiendoTimeout = null
+let temporizadorEscribiendo = null
 
 function actualizarEscribiendo() {
     if (usuariosEscribiendo.size === 0) {
-        escribiendoText.value = ''
+        textoEscribiendo.value = ''
     } else if (usuariosEscribiendo.size === 1) {
-        escribiendoText.value = `${Array.from(usuariosEscribiendo)[0]} está escribiendo...`
+        textoEscribiendo.value = `${Array.from(usuariosEscribiendo)[0]} está escribiendo...`
     } else {
-        escribiendoText.value = 'Varios usuarios están escribiendo...'
+        textoEscribiendo.value = 'Varios usuarios están escribiendo...'
     }
 }
 
-function scrollToBottom() {
+function irAlFinal() {
     nextTick(() => {
         window.scrollTo(0, document.body.scrollHeight)
     })
 }
 
-function handleInput() {
+function alEscribir() {
     props.socket.emit('escribiendo', true)
-    clearTimeout(escribiendoTimeout)
-    escribiendoTimeout = setTimeout(() => {
+    clearTimeout(temporizadorEscribiendo)
+    temporizadorEscribiendo = setTimeout(() => {
         props.socket.emit('escribiendo', false)
     }, 1500)
 }
 
-function sendMessage() {
-    if (inputText.value && props.currentUser) {
-        props.socket.emit('chat message', inputText.value)
+function enviarMensaje() {
+    if (textoInput.value && props.currentUser) {
+        props.socket.emit('chat message', textoInput.value)
         props.socket.emit('escribiendo', false)
-        inputText.value = ''
+        textoInput.value = ''
     }
 }
 
-function isImage(str) {
+function esImagen(str) {
     return str?.startsWith('data:') || str?.startsWith('http')
 }
 
@@ -64,35 +64,35 @@ onMounted(() => {
         props.socket.emit('join', props.currentUser)
     })
 
-    props.socket.on('cargar mensajes', (msgs) => {
-        messages.value = msgs
-        scrollToBottom()
+    props.socket.on('cargar mensajes', (listaMensajes) => {
+        mensajes.value = listaMensajes
+        irAlFinal()
     })
 
-    props.socket.on('actualizar usuarios', (data) => {
-        usuarios.value = data
+    props.socket.on('actualizar usuarios', (listaUsuarios) => {
+        usuarios.value = listaUsuarios
     })
 
-    props.socket.on('usuario escribiendo', (data) => {
-        if (data.estado) {
-            usuariosEscribiendo.add(data.user.name)
+    props.socket.on('usuario escribiendo', (datos) => {
+        if (datos.estado) {
+            usuariosEscribiendo.add(datos.user.name)
         } else {
-            usuariosEscribiendo.delete(data.user.name)
+            usuariosEscribiendo.delete(datos.user.name)
         }
         actualizarEscribiendo()
     })
 
-    props.socket.on('chat message', (data) => {
-        messages.value.push(data)
-        scrollToBottom()
+    props.socket.on('chat message', (mensaje) => {
+        mensajes.value.push(mensaje)
+        irAlFinal()
     })
 })
 
 onUnmounted(() => {
-    clearTimeout(escribiendoTimeout)
+    clearTimeout(temporizadorEscribiendo)
     props.socket.emit('escribiendo', false)
-    for (const ev of ['connect', 'cargar mensajes', 'actualizar usuarios', 'usuario escribiendo', 'chat message']) {
-        props.socket.off(ev)
+    for (const evento of ['connect', 'cargar mensajes', 'actualizar usuarios', 'usuario escribiendo', 'chat message']) {
+        props.socket.off(evento)
     }
 })
 </script>
@@ -102,12 +102,12 @@ onUnmounted(() => {
         <div id="sidebar">
         <div class="sidebar-header">
             <h3>Usuarios Conectados</h3>
-            <button @click="handleSignOut" class="signout-btn">Salir ↩</button>
+            <button @click="cerrarSesion" class="signout-btn">Salir ↩</button>
         </div>
         <ul id="listausuarios">
             <li v-for="usuario in usuarios" :key="usuario.id">
                 <span class="user-list-avatar">
-                    <img v-if="isImage(usuario.avatar)" :src="usuario.avatar" class="sidebar-avatar-img" alt="" />
+                    <img v-if="esImagen(usuario.avatar)" :src="usuario.avatar" class="sidebar-avatar-img" alt="" />
                     <template v-else>{{ usuario.avatar }}</template>
                 </span>
                 <div class="user-list-info">
@@ -121,36 +121,36 @@ onUnmounted(() => {
     <div id="chat-container">
         <ul id="messages">
             <li
-            v-for="(msg, index) in messages"
-            :key="index"
+            v-for="(mensaje, indice) in mensajes"
+            :key="indice"
             :class="{
-                'system-msg': msg.system,
-                'my-message': !msg.system && currentUser && msg.user.name === currentUser.name
+                'system-msg': mensaje.system,
+                'my-message': !mensaje.system && currentUser && mensaje.user.name === currentUser.name
             }"
             >
-            <template v-if="msg.system">{{ msg.text }}</template>
+            <template v-if="mensaje.system">{{ mensaje.text }}</template>
             <template v-else>
                 <div class="avatar">
-                    <img v-if="isImage(msg.user.avatar)" :src="msg.user.avatar" class="avatar-img" alt="" />
-                    <template v-else>{{ msg.user.avatar }}</template>
+                    <img v-if="esImagen(mensaje.user.avatar)" :src="mensaje.user.avatar" class="avatar-img" alt="" />
+                    <template v-else>{{ mensaje.user.avatar }}</template>
                 </div>
                 <div class="msg-content">
                     <div class="msg-header">
-                    <strong>{{ msg.user.name }}</strong>
-                    <span>{{ msg.user.status }}</span>
+                    <strong>{{ mensaje.user.name }}</strong>
+                    <span>{{ mensaje.user.status }}</span>
                     </div>
-                <div class="msg-text">{{ msg.text }}</div>
+                <div class="msg-text">{{ mensaje.text }}</div>
                 </div>
             </template>
             </li>
         </ul>
-        <div id="escribiendo">{{ escribiendoText }}</div>
-        <form id="form" @submit.prevent="sendMessage">
+        <div id="escribiendo">{{ textoEscribiendo }}</div>
+        <form id="form" @submit.prevent="enviarMensaje">
             <input
             id="input"
-            v-model="inputText"
+            v-model="textoInput"
             placeholder="Escribe un mensaje..."
-            @input="handleInput"
+            @input="alEscribir"
             />
             <button type="submit">Enviar</button>
         </form>

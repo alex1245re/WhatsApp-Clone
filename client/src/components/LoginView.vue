@@ -5,77 +5,77 @@ import { auth, googleProvider } from '../firebase.js'
 
 const emit = defineEmits(['login'])
 
-const step = ref('auth')
-const firebaseUser = ref(null)
+const paso = ref('auth')
+const usuarioFirebase = ref(null)
 
-const status = ref('')
+const estado = ref('')
 const avatar = ref('👨‍💻')
-const avatars = ['👨‍💻', '👩‍💻', '🤖', '👻', '🦊']
-const fileInputRef = ref(null)
-const isImageAvatar = computed(() => avatar.value?.startsWith('data:') || avatar.value?.startsWith('http'))
+const listaEmojis = ['👨‍💻', '👩‍💻', '🤖', '👻', '🦊']
+const inputArchivo = ref(null)
+const esImagen = computed(() => avatar.value?.startsWith('data:') || avatar.value?.startsWith('http'))
 
-const authMethod = ref('google')
-const emailMode  = ref('login')   
-const emailInput    = ref('')
-const passwordInput = ref('')
-const nameInput     = ref('')
-const loading = ref(false)
-const error   = ref('')
+const metodoAuth = ref('google')
+const modoEmail  = ref('login')
+const correo       = ref('')
+const contrasena   = ref('')
+const nombre       = ref('')
+const cargando = ref(false)
+const mensajeError = ref('')
 
-async function signInWithGoogle() {
-  loading.value = true
-  error.value   = ''
+async function entrarConGoogle() {
+  cargando.value = true
+  mensajeError.value = ''
   try {
-    const { user } = await signInWithPopup(auth, googleProvider)
-    firebaseUser.value = user
-    const savedGoogle = localStorage.getItem(`user_${user.uid}`)
-    if (savedGoogle) {
-      const profile = JSON.parse(savedGoogle)
-      status.value = profile.status || ''
-      avatar.value = profile.avatar || user.photoURL || '👨‍💻'
+    const { user: usuario } = await signInWithPopup(auth, googleProvider)
+    usuarioFirebase.value = usuario
+    const perfilGuardado = localStorage.getItem(`user_${usuario.uid}`)
+    if (perfilGuardado) {
+      const perfil = JSON.parse(perfilGuardado)
+      estado.value = perfil.status || ''
+      avatar.value = perfil.avatar || usuario.photoURL || '👨‍💻'
     } else {
-      avatar.value = user.photoURL || '👨‍💻'
+      avatar.value = usuario.photoURL || '👨‍💻'
     }
-    step.value = 'profile'
-  } catch (e) {
-    if (e.code !== 'auth/popup-closed-by-user') {
-      error.value = 'Error al iniciar sesión. Inténtalo de nuevo.'
+    paso.value = 'profile'
+  } catch (error) {
+    if (error.code !== 'auth/popup-closed-by-user') {
+      mensajeError.value = 'Error al iniciar sesión. Inténtalo de nuevo.'
     }
   } finally {
-    loading.value = false
+    cargando.value = false
   }
 }
 
-async function handleEmailAuth() {
-  loading.value = true
-  error.value   = ''
+async function entrarConEmail() {
+  cargando.value = true
+  mensajeError.value = ''
   try {
-    if (emailMode.value === 'register') {
-      const { user } = await createUserWithEmailAndPassword(auth, emailInput.value, passwordInput.value)
-      await updateProfile(user, { displayName: nameInput.value.trim() })
-      await user.reload()
-      firebaseUser.value = auth.currentUser
+    if (modoEmail.value === 'register') {
+      const { user: usuario } = await createUserWithEmailAndPassword(auth, correo.value, contrasena.value)
+      await updateProfile(usuario, { displayName: nombre.value.trim() })
+      await usuario.reload()
+      usuarioFirebase.value = auth.currentUser
     } else {
-      const { user } = await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value)
-      firebaseUser.value = user
+      const { user: usuario } = await signInWithEmailAndPassword(auth, correo.value, contrasena.value)
+      usuarioFirebase.value = usuario
     }
-    avatar.value = firebaseUser.value.photoURL || '👨‍💻'
-    const savedEmail = localStorage.getItem(`user_${firebaseUser.value.uid}`)
-    if (savedEmail) {
-      const profile = JSON.parse(savedEmail)
-      status.value = profile.status || ''
-      avatar.value = profile.avatar || firebaseUser.value.photoURL || '👨‍💻'
+    avatar.value = usuarioFirebase.value.photoURL || '👨‍💻'
+    const perfilGuardado = localStorage.getItem(`user_${usuarioFirebase.value.uid}`)
+    if (perfilGuardado) {
+      const perfil = JSON.parse(perfilGuardado)
+      estado.value = perfil.status || ''
+      avatar.value = perfil.avatar || usuarioFirebase.value.photoURL || '👨‍💻'
     }
-    step.value = 'profile'
-  } catch (e) {
-    error.value = getEmailError(e.code)
+    paso.value = 'profile'
+  } catch (error) {
+    mensajeError.value = obtenerErrorEmail(error.code)
   } finally {
-    loading.value = false
+    cargando.value = false
   }
 }
 
-function getEmailError(code) {
-  const msgs = {
+function obtenerErrorEmail(codigo) {
+  const errores = {
     'auth/email-already-in-use':  'Este correo ya está registrado.',
     'auth/invalid-email':         'Correo electrónico no válido.',
     'auth/weak-password':         'La contraseña debe tener al menos 6 caracteres.',
@@ -85,117 +85,118 @@ function getEmailError(code) {
     'auth/operation-not-allowed': 'El acceso con email no está habilitado en Firebase.',
     'auth/too-many-requests':     'Demasiados intentos. Espera un momento.',
   }
-  return msgs[code] || `Error (${code}). Inténtalo de nuevo.`
+  return errores[codigo] || `Error (${codigo}). Inténtalo de nuevo.`
 }
 
-async function changeAccount() {
+async function cambiarCuenta() {
   await signOut(auth)
-  firebaseUser.value  = null
-  step.value          = 'auth'
-  emailInput.value    = ''
-  passwordInput.value = ''
-  nameInput.value     = ''
-  avatar.value        = '👨‍💻'
-  error.value         = ''
+  usuarioFirebase.value = null
+  paso.value            = 'auth'
+  correo.value          = ''
+  contrasena.value      = ''
+  nombre.value          = ''
+  avatar.value          = '👨‍💻'
+  mensajeError.value    = ''
 }
 
-function triggerFileInput() {
-  fileInputRef.value?.click()
+function abrirSelectorFoto() {
+  inputArchivo.value?.click()
 }
 
-async function handlePhotoUpload(e) {
-  const file = e.target.files?.[0]
-  if (!file) return
-  const img = new Image()
-  img.src = URL.createObjectURL(file)
-  await new Promise(resolve => { img.onload = resolve })
-  const size = 80
-  const canvas = document.createElement('canvas')
-  canvas.width = size
-  canvas.height = size
-  const ctx = canvas.getContext('2d')
-  const minDim = Math.min(img.width, img.height)
-  const sx = (img.width - minDim) / 2
-  const sy = (img.height - minDim) / 2
-  ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size)
-  URL.revokeObjectURL(img.src)
-  avatar.value = canvas.toDataURL('image/jpeg', 0.75)
-  e.target.value = ''
+async function procesarFoto(evento) {
+  const archivo = evento.target.files?.[0]
+  if (archivo){
+    const imagen = new Image()
+    imagen.src = URL.createObjectURL(archivo)
+    await new Promise(resolve => { imagen.onload = resolve })
+    const dimension = 80
+    const lienzo = document.createElement('canvas')
+    lienzo.width = dimension
+    lienzo.height = dimension
+    const contexto = lienzo.getContext('2d')
+    const ladoMinimo = Math.min(imagen.width, imagen.height)
+    const recorteX = (imagen.width - ladoMinimo) / 2
+    const recorteY = (imagen.height - ladoMinimo) / 2
+    contexto.drawImage(imagen, recorteX, recorteY, ladoMinimo, ladoMinimo, 0, 0, dimension, dimension)
+    URL.revokeObjectURL(imagen.src)
+    avatar.value = lienzo.toDataURL('image/jpeg', 0.75)
+    evento.target.value = ''
+  }
 }
 
-function handleSubmit() {
+function confirmarPerfil() {
   emit('login', {
-    name:   firebaseUser.value.displayName || firebaseUser.value.email,
-    status: status.value.trim(),
+    name:   usuarioFirebase.value.displayName || usuarioFirebase.value.email,
+    status: estado.value.trim(),
     avatar: avatar.value,
-    uid:    firebaseUser.value.uid,
+    uid:    usuarioFirebase.value.uid,
   })
 }
 </script>
 
 <template>
   <div id="login-container">
-    <div v-if="step === 'auth'" id="login-form">
+    <div v-if="paso === 'auth'" id="login-form">
       <h2>WhatsApp Clone</h2>
       <p class="login-subtitle">Inicia sesión para continuar</p>
       <div class="auth-tabs">
         <button
           type="button"
-          :class="['tab-btn', { active: authMethod === 'google' }]"
-          @click="authMethod = 'google'; error = ''"
+          :class="['tab-btn', { active: metodoAuth === 'google' }]"
+          @click="metodoAuth = 'google'; mensajeError = ''"
         >Google</button>
         <button
           type="button"
-          :class="['tab-btn', { active: authMethod === 'email' }]"
-          @click="authMethod = 'email'; error = ''"
+          :class="['tab-btn', { active: metodoAuth === 'email' }]"
+          @click="metodoAuth = 'email'; mensajeError = ''"
         >Email</button>
       </div>
 
-      <template v-if="authMethod === 'google'">
-        <button @click="signInWithGoogle" :disabled="loading" class="google-btn">
-          <span v-if="loading">Cargando...</span>
+      <template v-if="metodoAuth === 'google'">
+        <button @click="entrarConGoogle" :disabled="cargando" class="google-btn">
+          <span v-if="cargando">Cargando...</span>
           <span v-else>Iniciar sesión con Google</span>
         </button>
       </template>
 
       <template v-else>
         <div class="email-mode-toggle">
-          <button type="button" :class="{ active: emailMode === 'login' }"    @click="emailMode = 'login';    error = ''">Iniciar sesión</button>
-          <button type="button" :class="{ active: emailMode === 'register' }" @click="emailMode = 'register'; error = ''">Crear cuenta</button>
+          <button type="button" :class="{ active: modoEmail === 'login' }"    @click="modoEmail = 'login';    mensajeError = ''">Iniciar sesión</button>
+          <button type="button" :class="{ active: modoEmail === 'register' }" @click="modoEmail = 'register'; mensajeError = ''">Crear cuenta</button>
         </div>
-        <form @submit.prevent="handleEmailAuth">
-          <input v-if="emailMode === 'register'" v-model="nameInput"     type="text"     placeholder="Tu nombre"                    autocomplete="name"             required />
-          <input                                  v-model="emailInput"    type="email"    placeholder="Correo electrónico"           autocomplete="email"            required />
-          <input                                  v-model="passwordInput" type="password" placeholder="Contraseña (mín. 6 caracteres)" autocomplete="current-password" required minlength="6" />
-          <button type="submit" :disabled="loading" class="submit-btn">
-            <span v-if="loading">Cargando...</span>
-            <span v-else>{{ emailMode === 'register' ? 'Crear cuenta' : 'Entrar' }}</span>
+        <form @submit.prevent="entrarConEmail">
+          <input v-if="modoEmail === 'register'" v-model="nombre"    type="text"     placeholder="Tu nombre"                    autocomplete="name"             required />
+          <input                                  v-model="correo"    type="email"    placeholder="Correo electrónico"           autocomplete="email"            required />
+          <input                                  v-model="contrasena" type="password" placeholder="Contraseña (mín. 6 caracteres)" autocomplete="current-password" required minlength="6" />
+          <button type="submit" :disabled="cargando" class="submit-btn">
+            <span v-if="cargando">Cargando...</span>
+            <span v-else>{{ modoEmail === 'register' ? 'Crear cuenta' : 'Entrar' }}</span>
           </button>
         </form>
       </template>
 
-      <p v-if="error" class="error-msg">{{ error }}</p>
+      <p v-if="mensajeError" class="error-msg">{{ mensajeError }}</p>
     </div>
 
-    <form v-else id="login-form" @submit.prevent="handleSubmit">
+    <form v-else id="login-form" @submit.prevent="confirmarPerfil">
       <div class="user-preview">
-        <img v-if="isImageAvatar" :src="avatar" class="google-avatar" alt="avatar" />
+        <img v-if="esImagen" :src="avatar" class="google-avatar" alt="avatar" />
         <div v-else class="avatar-placeholder">{{ avatar }}</div>
-        <strong>{{ firebaseUser?.displayName || firebaseUser?.email }}</strong>
-        <button type="button" class="change-account-btn" @click="changeAccount">↩ Cambiar</button>
+        <strong>{{ usuarioFirebase?.displayName || usuarioFirebase?.email }}</strong>
+        <button type="button" class="change-account-btn" @click="cambiarCuenta">↩ Cambiar</button>
       </div>
-      <input v-model="status" type="text" placeholder="Tu estado (ej: Disponible)" required />
+      <input v-model="estado" type="text" placeholder="Tu estado (ej: Disponible)" required />
       <div class="avatar-section">
         <div class="avatar-actions">
-          <input type="file" ref="fileInputRef" accept="image/*" @change="handlePhotoUpload" style="display:none" />
-          <button type="button" class="avatar-upload-btn" @click="triggerFileInput">📷 Subir foto</button>
-          <button v-if="isImageAvatar" type="button" class="avatar-clear-btn" @click="avatar = '👨‍💻'">✕ Quitar</button>
+          <input type="file" ref="inputArchivo" accept="image/*" @change="procesarFoto" style="display:none" />
+          <button type="button" class="avatar-upload-btn" @click="abrirSelectorFoto">📷 Subir foto</button>
+          <button v-if="esImagen" type="button" class="avatar-clear-btn" @click="avatar = '👨‍💻'">✕ Quitar</button>
         </div>
-        <div v-if="!isImageAvatar">
+        <div v-if="!esImagen">
           <p>O elige un emoji:</p>
           <div class="avatars">
-            <label v-for="a in avatars" :key="a">
-              <input type="radio" name="avatar" :value="a" v-model="avatar" /> {{ a }}
+            <label v-for="emoji in listaEmojis" :key="emoji">
+              <input type="radio" name="avatar" :value="emoji" v-model="avatar" /> {{ emoji }}
             </label>
           </div>
         </div>

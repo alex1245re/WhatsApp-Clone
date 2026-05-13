@@ -1,19 +1,19 @@
 const admin = require('firebase-admin')
 
-let db = null
+let baseDatos = null
 
 try {
-    const raw = process.env.FIREBASE_SERVICE_ACCOUNT
-    const cred = raw
-        ? admin.credential.cert(JSON.parse(Buffer.from(raw, 'base64').toString()))
+    const credencialBase64 = process.env.FIREBASE_SERVICE_ACCOUNT
+    const credencial = credencialBase64
+        ? admin.credential.cert(JSON.parse(Buffer.from(credencialBase64, 'base64').toString()))
         : admin.credential.cert(require('./serviceAccountKey.json'))
 
-    admin.initializeApp({ credential: cred })
-    db = admin.firestore()
-    db.settings({ ignoreUndefinedProperties: true })
+    admin.initializeApp({ credential: credencial })
+    baseDatos = admin.firestore()
+    baseDatos.settings({ ignoreUndefinedProperties: true })
     console.log('[Firebase] ✓ Firestore conectado')
-} catch (e) {
-    console.warn('[Firebase] Firestore no disponible:', e.message)
+} catch (error) {
+    console.warn('[Firebase] Firestore no disponible:', error.message)
 }
 
-module.exports = { db }
+module.exports = { baseDatos }

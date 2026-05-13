@@ -6,40 +6,40 @@ import socket from './socket.js'
 import LoginView from './components/LoginView.vue'
 import ChatView from './components/ChatView.vue'
 
-const currentUser  = ref(null)
-const initializing = ref(true)
+const usuarioActual  = ref(null)
+const cargando = ref(true)
 
-const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
-    if (!initializing.value) return  // solo actuar en la carga inicial (refresco de página)
-    if (firebaseUser) {
-        const saved = localStorage.getItem(`user_${firebaseUser.uid}`)
-        if (saved) {
-            try { currentUser.value = JSON.parse(saved) }
-            catch { currentUser.value = null }
+const cancelarEscuchaAuth = onAuthStateChanged(auth, (usuarioFirebase) => {
+    if (!cargando.value) return  // solo actuar en la carga inicial (refresco de página)
+    if (usuarioFirebase) {
+        const perfilGuardado = localStorage.getItem(`user_${usuarioFirebase.uid}`)
+        if (perfilGuardado) {
+            try { usuarioActual.value = JSON.parse(perfilGuardado) }
+            catch { usuarioActual.value = null }
         } else {
-            currentUser.value = null
+            usuarioActual.value = null
         }
     } else {
-        currentUser.value = null
+        usuarioActual.value = null
     }
-    initializing.value = false
+    cargando.value = false
 })
 
-onUnmounted(unsubscribeAuth)
+onUnmounted(cancelarEscuchaAuth)
 
-function handleLogin(user) {
-    currentUser.value = user
-    localStorage.setItem(`user_${user.uid}`, JSON.stringify(user))
+function alIniciarSesion(usuario) {
+    usuarioActual.value = usuario
+    localStorage.setItem(`user_${usuario.uid}`, JSON.stringify(usuario))
 }
 
-function handleLogout() {
-    if (currentUser.value?.uid) localStorage.removeItem(`user_${currentUser.value.uid}`)
-    currentUser.value = null
+function alCerrarSesion() {
+    if (usuarioActual.value?.uid) localStorage.removeItem(`user_${usuarioActual.value.uid}`)
+    usuarioActual.value = null
 }
 </script>
 
 <template>
-    <div v-if="initializing" class="app-loading">Cargando...</div>
-    <LoginView  v-else-if="!currentUser" @login="handleLogin" />
-    <ChatView   v-else :socket="socket" :current-user="currentUser" @logout="handleLogout" />
+    <div v-if="cargando" class="app-loading">Cargando...</div>
+    <LoginView  v-else-if="!usuarioActual" @login="alIniciarSesion" />
+    <ChatView   v-else :socket="socket" :current-user="usuarioActual" @logout="alCerrarSesion" />
 </template>
