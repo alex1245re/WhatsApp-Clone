@@ -1,12 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import {
-  signInWithPopup,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  updateProfile,
-  signOut,
-} from 'firebase/auth'
+import {signInWithPopup,signInWithEmailAndPassword,createUserWithEmailAndPassword,updateProfile,signOut,} from 'firebase/auth'
 import { auth, googleProvider } from '../firebase.js'
 
 const emit = defineEmits(['login'])
