@@ -86,6 +86,10 @@ async function changeAccount() {
   error.value         = ''
 }
 
+function triggerFileInput() {
+  fileInputRef.value?.click()
+}
+
 async function handlePhotoUpload(e) {
   const file = e.target.files?.[0]
   if (!file) return
@@ -171,17 +175,15 @@ function handleSubmit() {
       <div class="avatar-section">
         <div class="avatar-actions">
           <input type="file" ref="fileInputRef" accept="image/*" @change="handlePhotoUpload" style="display:none" />
-          <button type="button" class="avatar-upload-btn" @click="fileInputRef.click()">📷 Subir foto</button>
+          <button type="button" class="avatar-upload-btn" @click="triggerFileInput">📷 Subir foto</button>
           <button v-if="isImageAvatar" type="button" class="avatar-clear-btn" @click="avatar = '👨‍💻'">✕ Quitar</button>
         </div>
-        <template v-if="!isImageAvatar">
-          <p>O elige un emoji:</p>
-          <div class="avatars">
-            <label v-for="a in avatars" :key="a">
-              <input type="radio" name="avatar" :value="a" v-model="avatar" /> {{ a }}
-            </label>
-          </div>
-        </template>
+        <p>O elige un emoji:</p>
+        <div class="avatars">
+          <label v-for="a in avatars" :key="a">
+            <input type="radio" name="avatar" :value="a" v-model="avatar" /> {{ a }}
+          </label>
+        </div>
       </div>
       <button type="submit" class="submit-btn">Entrar al Chat</button>
     </form>
