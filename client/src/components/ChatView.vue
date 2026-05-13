@@ -52,6 +52,8 @@ function sendMessage() {
 }
 
 onMounted(() => {
+    props.socket.emit('join', props.currentUser)
+
     props.socket.on('actualizar usuarios', (data) => {
         usuarios.value = data
     })

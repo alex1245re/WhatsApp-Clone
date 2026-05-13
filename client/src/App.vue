@@ -9,7 +9,6 @@ const currentUser = ref(null)
 
 function handleLogin(user) {
     currentUser.value = user
-    socket.emit('join', user)
 }
 
 function handleLogout() {
