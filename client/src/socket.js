@@ -1,13 +1,7 @@
 import { io } from 'socket.io-client'
 
-let SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000'
-if (SERVER_URL && !SERVER_URL.startsWith('http')) {
-  SERVER_URL = 'https://' + SERVER_URL
-}
+const url = import.meta.env.VITE_SERVER_URL || 'http://localhost:3000'
 
-const socket = io(SERVER_URL, {
-  autoConnect: true,
+export default io(url.startsWith('http') ? url : `https://${url}`, {
   transports: ['websocket', 'polling']
 })
-
-export default socket

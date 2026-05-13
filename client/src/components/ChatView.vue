@@ -25,7 +25,7 @@ function actualizarEscribiendo() {
     } else if (usuariosEscribiendo.size === 1) {
         escribiendoText.value = `${Array.from(usuariosEscribiendo)[0]} está escribiendo...`
     } else {
-    escribiendoText.value = 'Varios usuarios están escribiendo...'
+        escribiendoText.value = 'Varios usuarios están escribiendo...'
     }
 }
 
@@ -74,8 +74,8 @@ onMounted(() => {
         } else {
             usuariosEscribiendo.delete(data.user.name)
         }
-    actualizarEscribiendo()
-})
+        actualizarEscribiendo()
+    })
 
     props.socket.on('chat message', (data) => {
         messages.value.push(data)
@@ -86,11 +86,9 @@ onMounted(() => {
 onUnmounted(() => {
     clearTimeout(escribiendoTimeout)
     props.socket.emit('escribiendo', false)
-    props.socket.off('connect')
-    props.socket.off('cargar mensajes')
-    props.socket.off('actualizar usuarios')
-    props.socket.off('usuario escribiendo')
-    props.socket.off('chat message')
+    for (const ev of ['connect', 'cargar mensajes', 'actualizar usuarios', 'usuario escribiendo', 'chat message']) {
+        props.socket.off(ev)
+    }
 })
 </script>
 

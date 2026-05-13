@@ -300,7 +300,7 @@ body {
     margin-top: 10px;
 }
 
-/* Tabs Google / Email */
+/* Tabs auth */
 .auth-tabs {
     display: flex;
     border: 1px solid #ddd;
@@ -326,7 +326,7 @@ body {
     color: #fff;
 }
 
-/* Toggle Iniciar sesión / Crear cuenta */
+/* Toggle login/register */
 .email-mode-toggle {
     display: flex;
     border: 1px solid #ddd;
@@ -352,10 +352,7 @@ body {
     color: #fff;
 }
 
-/* Inputs del formulario email */
-
-
-/* Avatar placeholder para usuarios sin foto de Google */
+/* Avatar placeholder */
 .avatar-placeholder {
     width: 45px;
     height: 45px;
@@ -367,7 +364,7 @@ body {
     font-size: 1.5rem;
 }
 
-/* Botón para cambiar de cuenta en el paso de perfil */
+/* Botón cambiar cuenta */
 .change-account-btn {
     margin-left: auto;
     background: none;

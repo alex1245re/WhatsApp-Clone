@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onUnmounted } from 'vue'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from './firebase.js'
 import socket from './socket.js'
@@ -9,28 +9,22 @@ import ChatView from './components/ChatView.vue'
 const currentUser  = ref(null)
 const initializing = ref(true)
 
-let unsubscribeAuth = null
-
-onMounted(() => {
-    unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
-        if (firebaseUser) {
-            const saved = localStorage.getItem(`wac_profile_${firebaseUser.uid}`)
-            if (saved) {
-                try { currentUser.value = JSON.parse(saved) }
-                catch { currentUser.value = null }
-            } else {
-                currentUser.value = null
-            }
+const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+    if (firebaseUser) {
+        const saved = localStorage.getItem(`wac_profile_${firebaseUser.uid}`)
+        if (saved) {
+            try { currentUser.value = JSON.parse(saved) }
+            catch { currentUser.value = null }
         } else {
             currentUser.value = null
         }
-        initializing.value = false
-    })
+    } else {
+        currentUser.value = null
+    }
+    initializing.value = false
 })
 
-onUnmounted(() => {
-    if (unsubscribeAuth) unsubscribeAuth()
-})
+onUnmounted(unsubscribeAuth)
 
 function handleLogin(user) {
     currentUser.value = user
@@ -38,9 +32,7 @@ function handleLogin(user) {
 }
 
 function handleLogout() {
-    if (currentUser.value?.uid) {
-        localStorage.removeItem(`wac_profile_${currentUser.value.uid}`)
-    }
+    if (currentUser.value?.uid) localStorage.removeItem(`wac_profile_${currentUser.value.uid}`)
     currentUser.value = null
 }
 </script>
