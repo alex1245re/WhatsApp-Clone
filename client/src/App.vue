@@ -11,7 +11,7 @@ const initializing = ref(true)
 
 const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
     if (firebaseUser) {
-        const saved = localStorage.getItem(`wac_profile_${firebaseUser.uid}`)
+        const saved = localStorage.getItem(`user_${firebaseUser.uid}`)
         if (saved) {
             try { currentUser.value = JSON.parse(saved) }
             catch { currentUser.value = null }
@@ -28,11 +28,11 @@ onUnmounted(unsubscribeAuth)
 
 function handleLogin(user) {
     currentUser.value = user
-    localStorage.setItem(`wac_profile_${user.uid}`, JSON.stringify(user))
+    localStorage.setItem(`user_${user.uid}`, JSON.stringify(user))
 }
 
 function handleLogout() {
-    if (currentUser.value?.uid) localStorage.removeItem(`wac_profile_${currentUser.value.uid}`)
+    if (currentUser.value?.uid) localStorage.removeItem(`user_${currentUser.value.uid}`)
     currentUser.value = null
 }
 </script>

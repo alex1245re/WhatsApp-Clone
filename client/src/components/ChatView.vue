@@ -51,6 +51,10 @@ function sendMessage() {
     }
 }
 
+function isImage(str) {
+    return str?.startsWith('data:') || str?.startsWith('http')
+}
+
 onMounted(() => {
     props.socket.emit('join', props.currentUser)
 
@@ -101,7 +105,10 @@ onUnmounted(() => {
         </div>
         <ul id="listausuarios">
             <li v-for="usuario in usuarios" :key="usuario.id">
-                <span class="user-list-avatar">{{ usuario.avatar }}</span>
+                <span class="user-list-avatar">
+                    <img v-if="isImage(usuario.avatar)" :src="usuario.avatar" class="sidebar-avatar-img" alt="" />
+                    <template v-else>{{ usuario.avatar }}</template>
+                </span>
                 <div class="user-list-info">
                 <strong>{{ usuario.name }}</strong>
                 <span>{{ usuario.status }}</span>
@@ -122,7 +129,10 @@ onUnmounted(() => {
             >
             <template v-if="msg.system">{{ msg.text }}</template>
             <template v-else>
-                <div class="avatar">{{ msg.user.avatar }}</div>
+                <div class="avatar">
+                    <img v-if="isImage(msg.user.avatar)" :src="msg.user.avatar" class="avatar-img" alt="" />
+                    <template v-else>{{ msg.user.avatar }}</template>
+                </div>
                 <div class="msg-content">
                     <div class="msg-header">
                     <strong>{{ msg.user.name }}</strong>
