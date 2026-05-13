@@ -28,7 +28,14 @@ async function signInWithGoogle() {
   try {
     const { user } = await signInWithPopup(auth, googleProvider)
     firebaseUser.value = user
-    avatar.value = user.photoURL || '👨‍💻'
+    const savedGoogle = localStorage.getItem(`user_${user.uid}`)
+    if (savedGoogle) {
+      const profile = JSON.parse(savedGoogle)
+      status.value = profile.status || ''
+      avatar.value = profile.avatar || user.photoURL || '👨‍💻'
+    } else {
+      avatar.value = user.photoURL || '👨‍💻'
+    }
     step.value = 'profile'
   } catch (e) {
     if (e.code !== 'auth/popup-closed-by-user') {
@@ -53,6 +60,12 @@ async function handleEmailAuth() {
       firebaseUser.value = user
     }
     avatar.value = firebaseUser.value.photoURL || '👨‍💻'
+    const savedEmail = localStorage.getItem(`user_${firebaseUser.value.uid}`)
+    if (savedEmail) {
+      const profile = JSON.parse(savedEmail)
+      status.value = profile.status || ''
+      avatar.value = profile.avatar || firebaseUser.value.photoURL || '👨‍💻'
+    }
     step.value = 'profile'
   } catch (e) {
     error.value = getEmailError(e.code)

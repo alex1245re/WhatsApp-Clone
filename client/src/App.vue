@@ -10,6 +10,7 @@ const currentUser  = ref(null)
 const initializing = ref(true)
 
 const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+    if (!initializing.value) return  // solo actuar en la carga inicial (refresco de página)
     if (firebaseUser) {
         const saved = localStorage.getItem(`user_${firebaseUser.uid}`)
         if (saved) {
