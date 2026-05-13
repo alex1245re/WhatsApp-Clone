@@ -1,61 +1,64 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import {signInWithPopup,signInWithEmailAndPassword,createUserWithEmailAndPassword,updateProfile,signOut,onAuthStateChanged} from 'firebase/auth'
+import { ref } from 'vue'
+import {
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
+  signOut,
+} from 'firebase/auth'
 import { auth, googleProvider } from '../firebase.js'
 
 const emit = defineEmits(['login'])
 
+// 'auth' → pantalla de login  |  'profile' → elegir estado y avatar
+const step = ref('auth')
 const firebaseUser = ref(null)
+
 const status = ref('')
 const avatar = ref('👨‍💻')
 const avatars = ['👨‍💻', '👩‍💻', '🤖', '👻', '🦊']
-const loading = ref(false)
-const error = ref('')
 
-const authMethod = ref('google') 
-const emailMode = ref('login')
-const emailInput = ref('')
+const authMethod = ref('google')  // 'google' | 'email'
+const emailMode  = ref('login')   // 'login'  | 'register'
+const emailInput    = ref('')
 const passwordInput = ref('')
-const nameInput = ref('')
+const nameInput     = ref('')
+const loading = ref(false)
+const error   = ref('')
 
-let unsubscribeAuth = null
-
-onMounted(() => {
-  unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-    firebaseUser.value = user
-  })
-})
-
-onUnmounted(() => {
-  if (unsubscribeAuth) unsubscribeAuth()
-})
-
+// ── Google ────────────────────────────────────────────────────────────────
 async function signInWithGoogle() {
   loading.value = true
-  error.value = ''
+  error.value   = ''
   try {
-    const result = await signInWithPopup(auth, googleProvider)
-    firebaseUser.value = result.user
+    const { user } = await signInWithPopup(auth, googleProvider)
+    firebaseUser.value = user
+    step.value = 'profile'
   } catch (e) {
-    error.value = 'Error al iniciar sesión. Inténtalo de nuevo.'
+    if (e.code !== 'auth/popup-closed-by-user') {
+      error.value = 'Error al iniciar sesión. Inténtalo de nuevo.'
+    }
   } finally {
     loading.value = false
   }
 }
 
+// ── Email / Contraseña ────────────────────────────────────────────────────
 async function handleEmailAuth() {
   loading.value = true
-  error.value = ''
+  error.value   = ''
   try {
     if (emailMode.value === 'register') {
-      const result = await createUserWithEmailAndPassword(auth, emailInput.value, passwordInput.value)
-      await updateProfile(result.user, { displayName: nameInput.value })
-      // updateProfile no actualiza el objeto user en memoria, lo forzamos
-      firebaseUser.value = { ...result.user, displayName: nameInput.value }
+      const { user } = await createUserWithEmailAndPassword(auth, emailInput.value, passwordInput.value)
+      await updateProfile(user, { displayName: nameInput.value.trim() })
+      await user.reload()
+      firebaseUser.value = auth.currentUser
     } else {
-      const result = await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value)
-      firebaseUser.value = result.user
+      const { user } = await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value)
+      firebaseUser.value = user
     }
+    step.value = 'profile'
   } catch (e) {
     error.value = getEmailError(e.code)
   } finally {
@@ -65,80 +68,97 @@ async function handleEmailAuth() {
 
 function getEmailError(code) {
   const msgs = {
-    'auth/email-already-in-use': 'Este correo ya está registrado.',
-    'auth/invalid-email': 'Correo electrónico no válido.',
-    'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
-    'auth/user-not-found': 'No existe una cuenta con este correo.',
-    'auth/wrong-password': 'Contraseña incorrecta.',
-    'auth/invalid-credential': 'Correo o contraseña incorrectos.',
+    'auth/email-already-in-use':  'Este correo ya está registrado.',
+    'auth/invalid-email':         'Correo electrónico no válido.',
+    'auth/weak-password':         'La contraseña debe tener al menos 6 caracteres.',
+    'auth/user-not-found':        'No existe una cuenta con este correo.',
+    'auth/wrong-password':        'Contraseña incorrecta.',
+    'auth/invalid-credential':    'Correo o contraseña incorrectos.',
+    'auth/operation-not-allowed': 'El acceso con email no está habilitado en Firebase.',
+    'auth/too-many-requests':     'Demasiados intentos. Espera un momento.',
   }
-  return msgs[code] || `Error de autenticación (${code}). Inténtalo de nuevo.`
+  return msgs[code] || `Error (${code}). Inténtalo de nuevo.`
 }
 
-async function signOutFromSetup() {
+// ── Cambiar cuenta ────────────────────────────────────────────────────────
+async function changeAccount() {
   await signOut(auth)
-  firebaseUser.value = null
+  firebaseUser.value  = null
+  step.value          = 'auth'
+  emailInput.value    = ''
+  passwordInput.value = ''
+  nameInput.value     = ''
+  error.value         = ''
 }
 
+// ── Entrar al chat ────────────────────────────────────────────────────────
 function handleSubmit() {
   emit('login', {
-    name: firebaseUser.value.displayName || firebaseUser.value.email,
-    status: status.value,
+    name:   firebaseUser.value.displayName || firebaseUser.value.email,
+    status: status.value.trim(),
     avatar: avatar.value,
-    uid: firebaseUser.value.uid
+    uid:    firebaseUser.value.uid,
   })
 }
 </script>
 
 <template>
   <div id="login-container">
-    <div v-if="!firebaseUser" id="login-form">
+
+    <!-- ── PASO 1: Autenticación ── -->
+    <div v-if="step === 'auth'" id="login-form">
       <h2>WhatsApp Clone</h2>
       <p class="login-subtitle">Inicia sesión para continuar</p>
 
+      <!-- Tabs Google / Email -->
       <div class="auth-tabs">
-        <button type="button" :class="['tab-btn', { active: authMethod === 'google' }]" @click="authMethod = 'google'">
-          Google
-        </button>
-        <button type="button" :class="['tab-btn', { active: authMethod === 'email' }]" @click="authMethod = 'email'">
-          Email
-        </button>
+        <button
+          type="button"
+          :class="['tab-btn', { active: authMethod === 'google' }]"
+          @click="authMethod = 'google'; error = ''"
+        >Google</button>
+        <button
+          type="button"
+          :class="['tab-btn', { active: authMethod === 'email' }]"
+          @click="authMethod = 'email'; error = ''"
+        >Email</button>
       </div>
 
-      <div v-if="authMethod === 'google'">
+      <!-- Google -->
+      <template v-if="authMethod === 'google'">
         <button @click="signInWithGoogle" :disabled="loading" class="google-btn">
           <span v-if="loading">Cargando...</span>
           <span v-else>Iniciar sesión con Google</span>
         </button>
-      </div>
+      </template>
 
-      <form v-else @submit.prevent="handleEmailAuth">
+      <!-- Email / Contraseña -->
+      <template v-else>
         <div class="email-mode-toggle">
-          <button type="button" :class="{ active: emailMode === 'login' }" @click="emailMode = 'login'">
-            Iniciar sesión
-          </button>
-          <button type="button" :class="{ active: emailMode === 'register' }" @click="emailMode = 'register'">
-            Crear cuenta
-          </button>
+          <button type="button" :class="{ active: emailMode === 'login' }"    @click="emailMode = 'login';    error = ''">Iniciar sesión</button>
+          <button type="button" :class="{ active: emailMode === 'register' }" @click="emailMode = 'register'; error = ''">Crear cuenta</button>
         </div>
-        <input v-if="emailMode === 'register'" v-model="nameInput" type="text" placeholder="Tu nombre" required />
-        <input v-model="emailInput" type="email" placeholder="Correo electrónico" required />
-        <input v-model="passwordInput" type="password" placeholder="Contraseña" required minlength="6" />
-        <button type="submit" :disabled="loading" class="submit-btn">
-          <span v-if="loading">Cargando...</span>
-          <span v-else>{{ emailMode === 'register' ? 'Crear cuenta' : 'Entrar' }}</span>
-        </button>
-      </form>
+        <form @submit.prevent="handleEmailAuth">
+          <input v-if="emailMode === 'register'" v-model="nameInput"     type="text"     placeholder="Tu nombre"                    autocomplete="name"             required />
+          <input                                  v-model="emailInput"    type="email"    placeholder="Correo electrónico"           autocomplete="email"            required />
+          <input                                  v-model="passwordInput" type="password" placeholder="Contraseña (mín. 6 caracteres)" autocomplete="current-password" required minlength="6" />
+          <button type="submit" :disabled="loading" class="submit-btn">
+            <span v-if="loading">Cargando...</span>
+            <span v-else>{{ emailMode === 'register' ? 'Crear cuenta' : 'Entrar' }}</span>
+          </button>
+        </form>
+      </template>
 
       <p v-if="error" class="error-msg">{{ error }}</p>
     </div>
 
+    <!-- ── PASO 2: Perfil (estado + avatar) ── -->
     <form v-else id="login-form" @submit.prevent="handleSubmit">
       <div class="user-preview">
-        <img v-if="firebaseUser.photoURL" :src="firebaseUser.photoURL" :alt="firebaseUser.displayName" class="google-avatar" />
+        <img v-if="firebaseUser?.photoURL" :src="firebaseUser.photoURL" :alt="firebaseUser.displayName" class="google-avatar" />
         <div v-else class="avatar-placeholder">{{ avatar }}</div>
-        <strong>{{ firebaseUser.displayName || firebaseUser.email }}</strong>
-        <button type="button" class="change-account-btn" @click="signOutFromSetup">↩ Cambiar</button>
+        <strong>{{ firebaseUser?.displayName || firebaseUser?.email }}</strong>
+        <button type="button" class="change-account-btn" @click="changeAccount">↩ Cambiar</button>
       </div>
       <input v-model="status" type="text" placeholder="Tu estado (ej: Disponible)" required />
       <p>Elige tu avatar:</p>
@@ -149,5 +169,6 @@ function handleSubmit() {
       </div>
       <button type="submit" class="submit-btn">Entrar al Chat</button>
     </form>
+
   </div>
 </template>
