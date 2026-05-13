@@ -54,6 +54,11 @@ function sendMessage() {
 onMounted(() => {
     props.socket.emit('join', props.currentUser)
 
+    // Re-emitir join si el socket se reconecta (corte de red)
+    props.socket.on('connect', () => {
+        props.socket.emit('join', props.currentUser)
+    })
+
     props.socket.on('cargar mensajes', (msgs) => {
         messages.value = msgs
         scrollToBottom()
@@ -79,6 +84,9 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+    clearTimeout(escribiendoTimeout)
+    props.socket.emit('escribiendo', false)
+    props.socket.off('connect')
     props.socket.off('cargar mensajes')
     props.socket.off('actualizar usuarios')
     props.socket.off('usuario escribiendo')

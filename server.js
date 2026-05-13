@@ -14,6 +14,8 @@ const allowedOrigins = process.env.CLIENT_ORIGIN
 
 app.use(cors({ origin: allowedOrigins, methods: ['GET', 'POST'] }));
 
+app.get('/', (_req, res) => res.send('OK'));
+
 const server = createServer(app);
 const io = new Server(server, {
     cors: {
@@ -25,7 +27,7 @@ const io = new Server(server, {
 // Helper Firestore: añade doc sin bloquear ni romper si no está disponible
 const fsAdd = (ref, data) => db ? ref.add(data).catch(e => console.error('[Firestore]', e.message)) : null;
 
-var usuariosConectados = [];
+let usuariosConectados = [];
 
 io.on('connection', (socket) => {
     socket.on('join', async (user) => {

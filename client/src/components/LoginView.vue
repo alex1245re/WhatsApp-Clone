@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { signInWithPopup, onAuthStateChanged } from 'firebase/auth'
 import { auth, googleProvider } from '../firebase.js'
 
@@ -12,10 +12,16 @@ const avatars = ['👨‍💻', '👩‍💻', '🤖', '👻', '🦊']
 const loading = ref(false)
 const error = ref('')
 
+let unsubscribeAuth = null
+
 onMounted(() => {
-  onAuthStateChanged(auth, (user) => {
+  unsubscribeAuth = onAuthStateChanged(auth, (user) => {
     firebaseUser.value = user
   })
+})
+
+onUnmounted(() => {
+  if (unsubscribeAuth) unsubscribeAuth()
 })
 
 async function signInWithGoogle() {
