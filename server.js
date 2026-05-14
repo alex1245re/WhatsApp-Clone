@@ -9,7 +9,7 @@ const puerto = process.env.PORT || 3000;
 
 const origenesPermitidos = process.env.CLIENT_ORIGIN
     ? [process.env.CLIENT_ORIGIN]
-    : ['http://localhost:5173', 'http://localhost:4173'];
+    : ['http://localhost:5173'];
 
 app.use(cors({ origin: origenesPermitidos, methods: ['GET', 'POST'] }));
 
@@ -24,8 +24,12 @@ const io = new Server(servidor, {
 });
 
 function guardarMensaje(coleccion, datos) {
-    if (!baseDatos) return null;
-    return coleccion.add(datos).catch(error => console.error('[Firestore]', error.message));
+    if (baseDatos){
+        return coleccion.add(datos).catch(error => console.error('[Firestore]', error.message));
+    }
+    else {
+        return null;
+    }
 }
 
 let usuariosConectados = [];

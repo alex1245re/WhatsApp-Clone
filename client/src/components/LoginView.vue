@@ -15,10 +15,10 @@ const inputArchivo = ref(null)
 const esImagen = computed(() => avatar.value?.startsWith('data:') || avatar.value?.startsWith('http'))
 
 const metodoAuth = ref('google')
-const modoEmail  = ref('login')
-const correo       = ref('')
-const contrasena   = ref('')
-const nombre       = ref('')
+const modoEmail = ref('login')
+const correo = ref('')
+const contrasena = ref('')
+const nombre = ref('')
 const cargando = ref(false)
 const mensajeError = ref('')
 
@@ -91,24 +91,31 @@ function obtenerErrorEmail(codigo) {
 async function cambiarCuenta() {
   await signOut(auth)
   usuarioFirebase.value = null
-  paso.value            = 'auth'
-  correo.value          = ''
-  contrasena.value      = ''
-  nombre.value          = ''
-  avatar.value          = '👨‍💻'
-  mensajeError.value    = ''
+  paso.value = 'auth'
+  correo.value = ''
+  contrasena.value = ''
+  nombre.value = ''
+  avatar.value = '👨‍💻'
+  mensajeError.value = ''
 }
 
 function abrirSelectorFoto() {
-  inputArchivo.value?.click()
+  if (inputArchivo.value){
+  inputArchivo.value.click()
+  }
 }
 
 async function procesarFoto(evento) {
-  const archivo = evento.target.files?.[0]
+  const archivo = evento.target.files ? evento.target.files[0] : undefined
+  
   if (archivo){
     const imagen = new Image()
     imagen.src = URL.createObjectURL(archivo)
-    await new Promise(resolve => { imagen.onload = resolve })
+
+    await new Promise(resolve => { 
+      imagen.onload = resolve 
+    })
+
     const dimension = 80
     const lienzo = document.createElement('canvas')
     lienzo.width = dimension
@@ -165,9 +172,9 @@ function confirmarPerfil() {
           <button type="button" :class="{ active: modoEmail === 'register' }" @click="modoEmail = 'register'; mensajeError = ''">Crear cuenta</button>
         </div>
         <form @submit.prevent="entrarConEmail">
-          <input v-if="modoEmail === 'register'" v-model="nombre"    type="text"     placeholder="Tu nombre"                    autocomplete="name"             required />
-          <input                                  v-model="correo"    type="email"    placeholder="Correo electrónico"           autocomplete="email"            required />
-          <input                                  v-model="contrasena" type="password" placeholder="Contraseña (mín. 6 caracteres)" autocomplete="current-password" required minlength="6" />
+          <input v-if="modoEmail === 'register'" v-model="nombre" type="text" placeholder="Tu nombre" autocomplete="name" required />
+          <input v-model="correo" type="email" placeholder="Correo electrónico" autocomplete="email" required />
+          <input v-model="contrasena" type="password" placeholder="Contraseña (mín. 6 caracteres)" autocomplete="current-password" required minlength="6" />
           <button type="submit" :disabled="cargando" class="submit-btn">
             <span v-if="cargando">Cargando...</span>
             <span v-else>{{ modoEmail === 'register' ? 'Crear cuenta' : 'Entrar' }}</span>
