@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
-import {signInWithPopup,signInWithEmailAndPassword,createUserWithEmailAndPassword,updateProfile,signOut,} from 'firebase/auth'
-import { auth, googleProvider } from '../firebase.js'
+import {signInWithPopup,signInWithEmailAndPassword,createUserWithEmailAndPassword,updateProfile,signOut} from 'firebase/auth'
+import { auth, googleProvider, facebookProvider } from '../firebase.js'
 
 const emit = defineEmits(['login'])
 
@@ -21,6 +21,30 @@ const contrasena = ref('')
 const nombre = ref('')
 const cargando = ref(false)
 const mensajeError = ref('')
+
+async function entrarConFacebook() {
+  cargando.value = true
+  mensajeError.value = ''
+  try {
+    const { user: usuario } = await signInWithPopup(auth, facebookProvider)
+    usuarioFirebase.value = usuario
+    const perfilGuardado = localStorage.getItem(`user_${usuario.uid}`)
+    if (perfilGuardado) {
+      const perfil = JSON.parse(perfilGuardado)
+      estado.value = perfil.status || ''
+      avatar.value = perfil.avatar || usuario.photoURL || '👨‍💻'
+    } else {
+      avatar.value = usuario.photoURL || '👨‍💻'
+    }
+    paso.value = 'profile'
+  } catch (error) {
+    if (error.code !== 'auth/popup-closed-by-user') {
+      mensajeError.value = 'Error al iniciar sesión con Facebook. Inténtalo de nuevo.'
+    }
+  } finally {
+    cargando.value = false
+  }
+}
 
 async function entrarConGoogle() {
   cargando.value = true
@@ -154,6 +178,11 @@ function confirmarPerfil() {
         >Google</button>
         <button
           type="button"
+          :class="['tab-btn', { active: metodoAuth === 'facebook' }]"
+          @click="metodoAuth = 'facebook'; mensajeError = ''"
+        >Facebook</button>
+        <button
+          type="button"
           :class="['tab-btn', { active: metodoAuth === 'email' }]"
           @click="metodoAuth = 'email'; mensajeError = ''"
         >Email</button>
@@ -163,6 +192,13 @@ function confirmarPerfil() {
         <button @click="entrarConGoogle" :disabled="cargando" class="google-btn">
           <span v-if="cargando">Cargando...</span>
           <span v-else>Iniciar sesión con Google</span>
+        </button>
+      </template>
+
+      <template v-else-if="metodoAuth === 'facebook'">
+        <button @click="entrarConFacebook" :disabled="cargando" class="facebook-btn">
+          <span v-if="cargando">Cargando...</span>
+          <span v-else>Iniciar sesión con Facebook</span>
         </button>
       </template>
 

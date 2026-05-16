@@ -45,10 +45,7 @@ io.on('connection', (socket) => {
 
         if (baseDatos) {
             try {
-                const resultados = await baseDatos.collection('messages')
-                    .orderBy('timestamp', 'asc')
-                    .limitToLast(50)
-                    .get();
+                const resultados = await baseDatos.collection('messages').orderBy('timestamp', 'asc').limitToLast(50).get();
                 const mensajes = resultados.docs.map(doc => doc.data());
                 socket.emit('cargar mensajes', mensajes);
             } catch (error) {
