@@ -277,8 +277,8 @@ body {
     cursor: not-allowed;
 }
 
-.facebook-btn {
-    background: #1877f2;
+.github-btn {
+    background: #24292e;
     color: #fff;
     border: none;
     padding: 12px;
@@ -290,11 +290,11 @@ body {
     transition: background 0.2s;
 }
 
-.facebook-btn:hover:not(:disabled) {
-    background: #166fe5;
+.github-btn:hover:not(:disabled) {
+    background: #3d444d;
 }
 
-.facebook-btn:disabled {
+.github-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }

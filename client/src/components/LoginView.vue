@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import {signInWithPopup,signInWithEmailAndPassword,createUserWithEmailAndPassword,updateProfile,signOut} from 'firebase/auth'
-import { auth, googleProvider, facebookProvider } from '../firebase.js'
+import { auth, googleProvider, githubProvider } from '../firebase.js'
 
 const emit = defineEmits(['login'])
 
@@ -22,11 +22,11 @@ const nombre = ref('')
 const cargando = ref(false)
 const mensajeError = ref('')
 
-async function entrarConFacebook() {
+async function entrarConGithub() {
   cargando.value = true
   mensajeError.value = ''
   try {
-    const { user: usuario } = await signInWithPopup(auth, facebookProvider)
+    const { user: usuario } = await signInWithPopup(auth, githubProvider)
     usuarioFirebase.value = usuario
     const perfilGuardado = localStorage.getItem(`user_${usuario.uid}`)
     if (perfilGuardado) {
@@ -39,7 +39,7 @@ async function entrarConFacebook() {
     paso.value = 'profile'
   } catch (error) {
     if (error.code !== 'auth/popup-closed-by-user') {
-      mensajeError.value = 'Error al iniciar sesión con Facebook. Inténtalo de nuevo.'
+      mensajeError.value = 'Error al iniciar sesión con GitHub. Inténtalo de nuevo.'
     }
   } finally {
     cargando.value = false
@@ -178,9 +178,9 @@ function confirmarPerfil() {
         >Google</button>
         <button
           type="button"
-          :class="['tab-btn', { active: metodoAuth === 'facebook' }]"
-          @click="metodoAuth = 'facebook'; mensajeError = ''"
-        >Facebook</button>
+          :class="['tab-btn', { active: metodoAuth === 'github' }]"
+          @click="metodoAuth = 'github'; mensajeError = ''"
+        >GitHub</button>
         <button
           type="button"
           :class="['tab-btn', { active: metodoAuth === 'email' }]"
@@ -195,10 +195,10 @@ function confirmarPerfil() {
         </button>
       </template>
 
-      <template v-else-if="metodoAuth === 'facebook'">
-        <button @click="entrarConFacebook" :disabled="cargando" class="facebook-btn">
+      <template v-else-if="metodoAuth === 'github'">
+        <button @click="entrarConGithub" :disabled="cargando" class="github-btn">
           <span v-if="cargando">Cargando...</span>
-          <span v-else>Iniciar sesión con Facebook</span>
+          <span v-else>Iniciar sesión con GitHub</span>
         </button>
       </template>
 

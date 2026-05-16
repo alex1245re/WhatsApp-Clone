@@ -8,8 +8,7 @@
     "dev:server": "nodemon server.js",
     "dev:client": "cd client && npm run dev",
     "build": "cd client && npm run build",
-    "deploy:hosting": "cd client && npm run build && cd .. && firebase deploy --only hosting",
-    "deploy:rules": "firebase deploy --only firestore:rules,firestore:indexes"
+    "deploy": "cd client && npm run build && cd .. && git add . && git commit -m \"deploy: actualizar build\" && git push"
   },
   "author": "afeldia",
   "license": "ISC",
